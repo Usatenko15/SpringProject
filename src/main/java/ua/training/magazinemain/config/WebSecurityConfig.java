@@ -11,6 +11,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import ua.training.magazinemain.entity.RoleType;
 import ua.training.magazinemain.service.IUserService;
 import ua.training.magazinemain.service.UserService;
 
@@ -40,7 +41,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception{
-        http.authorizeRequests().antMatchers(
+        http.authorizeRequests().
+                antMatchers("/admin").hasRole("ADMIN").
+                antMatchers("/magazines").hasRole("USER").
+                antMatchers(
                 "/registration**",
                 "/js/**",
                 "/css/**",

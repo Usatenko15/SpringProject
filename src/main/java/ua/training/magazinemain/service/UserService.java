@@ -10,23 +10,29 @@ import org.springframework.stereotype.Service;
 import ua.training.magazinemain.dto.UserDTO;
 import ua.training.magazinemain.entity.RoleType;
 import ua.training.magazinemain.entity.User;
+import ua.training.magazinemain.repository.RoleRepository;
 import ua.training.magazinemain.repository.UserRepository;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.stream.Collectors;
 
 @Service
 public class UserService implements IUserService {
-    private final UserRepository userRepository;
+    @PersistenceContext
+    private EntityManager em;
+
+    @Autowired
+    UserRepository userRepository;
+
+    @Autowired
+    RoleRepository roleRepository;
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
-
-    public UserService(UserRepository userRepository) {
-        super();
-        this.userRepository = userRepository;
-    }
 
 
     @Override
@@ -41,7 +47,7 @@ public class UserService implements IUserService {
         user.setLastName(userDto.getLastName());
         user.setPassword(passwordEncoder.encode(userDto.getPassword()));
         user.setEmail(userDto.getEmail());
-        user.setRole(RoleType.ROLE_USER);
+        user.setRoles(Collections.singleton(new RoleType(1L, "ROLE_USER")));
 
         return userRepository.save(user);
     }
@@ -53,13 +59,13 @@ public class UserService implements IUserService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(username).get();
-        if (user==null) {
+        if (user == null) {
             throw new UsernameNotFoundException("Invalid");
         }
-        return new org.springframework.security.core.userdetails.User(user.getEmail(), user.getPassword(),mapRolesToAuthorities(Arrays.stream(RoleType.values()).collect(Collectors.toList())));
+        return user;
     }
 
-    private Collection<? extends GrantedAuthority> mapRolesToAuthorities(Collection<RoleType> roles){
-        return roles.stream().map(role -> new SimpleGrantedAuthority(role.ROLE_USER.name())).collect(Collectors.toList());
-    }
+//    private Collection<? extends GrantedAuthority> mapRolesToAuthorities(Collection<RoleType> roles){
+//        return roles.stream().map(role -> new SimpleGrantedAuthority(role.USER.name())).collect(Collectors.toList());
+//    }
 }
